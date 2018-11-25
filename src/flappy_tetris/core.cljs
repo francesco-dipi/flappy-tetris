@@ -156,9 +156,9 @@
               (new-shape)))
           ; draw things
           (concat 
-            [[:fill {:color "lightgrey"} [:rect {:x 0 :y 0 :width (.-innerWidth js/window) :height (.-innerHeight js/window)}]]]
-            [[:fill {:color "blue"} (str-to-blocks (:player-str @state) (:player-x @state) (:player-y @state))]]
-            [[:fill {:color "yellow"} (str-to-blocks (:wall-str @state) (:wall-x @state) 0)]]
+            [[:fill {:color "lightblue"} [:rect {:x 0 :y 0 :width (.-innerWidth js/window) :height (.-innerHeight js/window)}]]]
+            [[:fill {:color "orange"} (str-to-blocks (:player-str @state) (:player-x @state) (:player-y @state))]]
+            [[:fill {:color "lime"} (str-to-blocks (:wall-str @state) (:wall-x @state) 0)]]
             ; score
             [[:fill {:color "green"} [:text {:value (str (:score @state)) :x (- (.-innerWidth js/window) 100) :y 30 :size 30}]]]
             ;; XXX debug:
