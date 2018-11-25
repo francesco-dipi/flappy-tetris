@@ -1,9 +1,16 @@
 (ns flappy-tetris.core
   (:require [play-cljs.core :as p]
-            [goog.events :as events]))
+            [goog.events :as events])
+  (:require-macros [flappy-tetris.music :as m]))
 
 (defonce game (p/create-game (.-innerWidth js/window) (.-innerHeight js/window)))
 (defonce state (atom {}))
+
+(defonce audio-up (js/document.createElement "audio"))
+(set! (.-src audio-up) (m/audio-up-cljs))
+
+(defonce audio-down (js/document.createElement "audio"))
+(set! (.-src audio-down) (m/audio-down-cljs))
 
 (def block-size 30)
 (def movement block-size)
@@ -134,12 +141,18 @@
                    (= (:wall-socket @state)
                       (-> @state :player-tetramino tetraminos :sockets (nth (:player-rot @state)))))
             (if (<= (- (:wall-x @state) (:player-x @state)) (/ block-size 2))
-              (do (new-shape) (swap! state assoc :score (inc (:score @state)))))
+              (do
+                (new-shape)
+                (do (.load audio-up) (.play audio-up))
+                (swap! state assoc :score (inc (:score @state)))))
             (if (< (:wall-x @state) (rightmost-player-x))
               (swap! state assoc :player-x (- (:player-x @state) speed))))
           ; check if player has reach end of screen
           (if (< (:player-x @state) 0)
-            (do (swap! state assoc :score 0 :player-x (/ (.-innerWidth js/window) 3)) (new-shape)))
+            (do
+              (swap! state assoc :score 0 :player-x (/ (.-innerWidth js/window) 3))
+              (do (.load audio-down) (.play audio-down))
+              (new-shape)))
           ; draw things
           (concat 
             [[:fill {:color "lightgrey"} [:rect {:x 0 :y 0 :width (.-innerWidth js/window) :height (.-innerHeight js/window)}]]]

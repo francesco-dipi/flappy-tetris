@@ -8,7 +8,8 @@
                   [javax.xml.bind/jaxb-api "2.3.0"] ; necessary for Java 9 compatibility
                   [nightlight "RELEASE"]
                   [org.clojure/clojurescript "1.10.312"]
-                  [play-cljs "1.2.0"]])
+                  [play-cljs "1.2.0"]
+                  [edna "1.6.0"])
 
 (require
   '[adzerk.boot-cljs :refer [cljs]]
