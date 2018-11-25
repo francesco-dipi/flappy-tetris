@@ -14,7 +14,7 @@
 
 (def block-size 30)
 (def movement block-size)
-(def speed 9) ; can be a state attribute, so that I can change it to increase difficulty...
+(def initial-speed (/ (.-innerWidth js/window) 100))
 (def initial-player-x (/ (.-innerWidth js/window) 3)) ; starts at the first thrid of screen
 
 (def tetraminos {
@@ -119,8 +119,9 @@
 
 (defn rotate-player [] (swap! state assoc :player-str (rotate (:player-str @state)) :player-rot (mod (inc (:player-rot @state)) 4)))
 
-(defn rightmost-player-x []
-  (+ (:player-x @state) (* block-size (apply max (map count (clojure.string/split (:player-str @state) "\n"))))))
+(defn player-width [] (* block-size (apply max (map count (clojure.string/split (:player-str @state) "\n")))))
+
+(defn rightmost-player-x [] (+ (:player-x @state) (player-width)))
 
 (def main-screen
   (reify p/Screen
@@ -134,7 +135,7 @@
       (p/render game
         (do 
           ; move wall towards player
-          (swap! state assoc :wall-x (- (:wall-x @state) speed))
+          (swap! state assoc :wall-x (- (:wall-x @state) (+ (/ (:score @state) 10) initial-speed)))
           ; check if wall touches player
           (if (and
                    (= (:player-y @state) (:socket-y @state))
@@ -146,7 +147,7 @@
                 (do (.load audio-up) (.play audio-up))
                 (swap! state assoc :score (inc (:score @state)))))
             (if (< (:wall-x @state) (rightmost-player-x))
-              (swap! state assoc :player-x (- (:player-x @state) speed))))
+              (swap! state assoc :player-x (- (:wall-x @state) (player-width)))))
           ; check if player has reach end of screen
           (if (< (:player-x @state) 0)
             (do
