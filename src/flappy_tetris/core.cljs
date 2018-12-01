@@ -14,7 +14,6 @@
 
 (def block-size 30)
 (def movement block-size)
-(def initial-speed (/ (.-innerWidth js/window) 100))
 (def initial-player-x (/ (.-innerWidth js/window) 3)) ; starts at the first thrid of screen
 
 (def tetraminos {
@@ -123,6 +122,11 @@
 
 (defn rightmost-player-x [] (+ (:player-x @state) (player-width)))
 
+(defn dyn-speed
+  "dynamic speed, proportional to game's fps"
+  []
+  (* (/ (.-innerWidth js/window) block-size) (p/get-delta-time game) 0.012))
+
 (def main-screen
   (reify p/Screen
     (on-show [this]
@@ -135,13 +139,13 @@
       (p/render game
         (do 
           ; move wall towards player
-          (swap! state assoc :wall-x (- (:wall-x @state) (+ (/ (:score @state) 10) initial-speed)))
+          (swap! state assoc :wall-x (- (:wall-x @state) (+ (/ (:score @state) 10) (dyn-speed))))
           ; check if wall touches player
           (if (and
                    (= (:player-y @state) (:socket-y @state))
                    (= (:wall-socket @state)
                       (-> @state :player-tetramino tetraminos :sockets (nth (:player-rot @state)))))
-            (if (<= (- (:wall-x @state) (:player-x @state)) (/ block-size 2))
+            (if (<= (- (:wall-x @state) (:player-x @state)) (/ block-size 2)); TODO use when
               (do
                 (new-shape)
                 (do (.load audio-up) (.play audio-up))
@@ -149,7 +153,7 @@
             (if (< (:wall-x @state) (rightmost-player-x))
               (swap! state assoc :player-x (- (:wall-x @state) (player-width)))))
           ; check if player has reach end of screen
-          (if (< (:player-x @state) 0)
+          (if (< (:player-x @state) 0); TODO use when
             (do
               (swap! state assoc :score 0 :player-x (/ (.-innerWidth js/window) 3))
               (do (.load audio-down) (.play audio-down))
@@ -198,10 +202,23 @@
 (events/listen js/window "click" rotate-player)
 (events/listen js/window "wheel" rotate-player) ; TODO: maybe use wheel up/down to rotate clockwise/counterclockwise?
 
-(events/listen js/window "mousemove"
-  (fn [event]
-    (swap! state assoc :player-y (* block-size (int (/ (.-clientY event) block-size))))))
-;    (swap! state assoc :player-y (.-clientY event))))
+(defn mouse-move [event]
+  ; TODO I'm sure there is a cleaner way to express this... a sort of threading but with the function
+  (if (not (goog.object/get (goog.object/get (goog.object/get event "event_") "sourceCapabilities") "firesTouchEvents"))
+    (pointer-move event)))
+
+(defn pointer-move [event]
+    (swap! state assoc :player-y (* block-size (int (/ (.-clientY event) block-size)))))
+
+(defn handle-touch [event]
+  (if (< (.-clientX event) (/ (.-innerWidth js/window) 2))
+    (rotate-player)
+    (pointer-move event)))
+
+
+(events/listen js/window "mousemove" mouse-move)
+(events/listen js/window "touchmove" handle-touch)
+(events/listen js/window "touchend" handle-touch)
 
 (events/listen js/window "resize"
   (fn [event]
