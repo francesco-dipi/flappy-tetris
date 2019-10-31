@@ -1,5 +1,5 @@
 # Flappy Tetris
-My entry for the [GameOff 2018](https://itch.io/jam/game-off-2018) jam.
+My entry for the [GameOff 2018](https://itch.io/jam/game-off-2018) jam - play it here: https://francesco-dipi.github.io/flappy-tetris/.
 
 The idea is to make an **hybrid** between flappy bird and tetris, but actually that's only an excuse to start learning clojure(script).
 
